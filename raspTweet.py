@@ -9,7 +9,7 @@ import json
 from twython import Twython
 
 # arquivo com as configuralcoes de acesso do twitter
-import raspTweetConf
+from raspTweetConf import *
 
 api = Twython(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_KEY,ACCESS_SECRET) 
 
