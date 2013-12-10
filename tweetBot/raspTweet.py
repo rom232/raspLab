@@ -17,13 +17,13 @@ config.readfp(open('defaults.cfg'))
 
 # variaveis uteis.
 hora = time.strftime("%d/%m/%Y - %H:%M:%S")
-
+#print '['+hora+']'
 #inicio MESMO
 if sys.argv[1] == 'listen':
     if config.get('Enviroment','LAST_DM_ID'):
         # pedir somente os itens maiores que o id existente...
         current_val = config.get('Enviroment','LAST_DM_ID')
-        print 'Valor atual = '+current_val
+        #print 'Valor atual = '+current_val
 
     else:
         # variavel nao existe.
@@ -32,15 +32,26 @@ if sys.argv[1] == 'listen':
         #abort script.
         exit()
     #pegando pacote com as mensagens enviadas
+    #print 'seguindo...'
     pkgReturnDM = api.get_direct_messages(since_id=current_val)
     for returnDM in pkgReturnDM:
         senderData = returnDM['sender']
         entities = returnDM['entities']
-        if senderData['id'] = config.get('Enviroment','allow_sender')
-            print returnDM['created_at']
-            print returnDM['entities']['hashtags'][0]['text']
+        #print senderData['id']
+        #print 'Sender ---->' + config.get('Enviroment','allow_sender')
+        #print 'senderData:' + str(senderData['id'])
+        if str(senderData['id']) == config.get('Enviroment','allow_sender'):
+            #print returnDM['created_at']
+            command =  returnDM['entities']['hashtags'][0]['text']
+            
             #Executar o comando da hashtag
-            #atualizar o ID
+            if command == 'addr':
+                cmd = 'python raspTweet.py addr'
+                #print 'comando enviado...'
+                os.popen(cmd)
+                # atualiza id
+                config.set('Enviroment','LAST_DM_ID',returnDM['id'])
+                config.write(open('defaults.cfg','w'))
 elif sys.argv[1] == 'update':
     api.update_status(status=sys.argv[2])
 elif sys.argv[1] == 'temp':
@@ -61,4 +72,5 @@ elif sys.argv[1] == 'fortune':
 elif sys.argv[1] == 'time':
     api.update_status(status='hora: ['+hora+']')
 else:
-    print '--- nothing here ---'
+    pass
+    #print '--- nothing here ---'
