@@ -34,8 +34,13 @@ if sys.argv[1] == 'listen':
     #pegando pacote com as mensagens enviadas
     pkgReturnDM = api.get_direct_messages(since_id=current_val)
     for returnDM in pkgReturnDM:
-        print returnDM['created_at']
-        print returnDM['entities']['hashtags']
+        senderData = returnDM['sender']
+        entities = returnDM['entities']
+        if senderData['id'] = config.get('Enviroment','allow_sender')
+            print returnDM['created_at']
+            print returnDM['entities']['hashtags'][0]['text']
+            #Executar o comando da hashtag
+            #atualizar o ID
 elif sys.argv[1] == 'update':
     api.update_status(status=sys.argv[2])
 elif sys.argv[1] == 'temp':
