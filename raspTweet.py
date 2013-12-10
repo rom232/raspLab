@@ -5,27 +5,37 @@ import urllib2
 import time
 import random
 import json
+import ConfigParser
 
 from twython import Twython
-
 # arquivo com as configuralcoes de acesso do twitter
 from raspTweetConf import *
 
 api = Twython(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_KEY,ACCESS_SECRET) 
+config = ConfigParser.ConfigParser()
+config.readfp(open('defaults.cfg'))
 
+# variaveis uteis.
 hora = time.strftime("%d/%m/%Y - %H:%M:%S")
 
+#inicio MESMO
 if sys.argv[1] == 'listen':
-    if "LAST_TWEET_ID" in os.environ:
-        print " var ok"
+    if config.get('Enviroment','LAST_DM_ID'):
+        # pedir somente os itens maiores que o id existente...
+        current_val = config.get('Enviroment','LAST_DM_ID')
+        print 'Valor atual = '+current_val
+
     else:
-        print " erro"
-        print " nova var"
-        with open("/home/pi/.bashrc","a") as outfile:
-            outfile.write("export LAST_TWEET_ID=1") 
-    returnDM = api.get_direct_messages()
-    print returnDM[0]['created_at']
-    print returnDM[0]['hashtags']
+        # variavel nao existe.
+        config.set('Enviroment','LAST_DM_ID',0)
+        config.write(open('defaults.cfg','w'))
+        #abort script.
+        exit()
+    #pegando pacote com as mensagens enviadas
+    pkgReturnDM = api.get_direct_messages(since_id=current_val)
+    for returnDM in pkgReturnDM:
+        print returnDM['created_at']
+        print returnDM['entities']['hashtags']
 elif sys.argv[1] == 'update':
     api.update_status(status=sys.argv[2])
 elif sys.argv[1] == 'temp':
@@ -44,4 +54,6 @@ elif sys.argv[1] == 'fortune':
     if len(line) < 140:
         api.update_status(status=line)
 elif sys.argv[1] == 'time':
-    api.update_status(status='horao: ['+hora+']')
+    api.update_status(status='hora: ['+hora+']')
+else:
+    print '--- nothing here ---'
