@@ -12,46 +12,56 @@ from twython import Twython
 from raspTweetConf import *
 
 api = Twython(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_KEY,ACCESS_SECRET) 
+fileDefaults = '/home/raspbot/raspLab/tweetBot/defaults.cfg'
+
 config = ConfigParser.ConfigParser()
-config.readfp(open('defaults.cfg'))
+config.readfp(open(fileDefaults))
 
 # variaveis uteis.
 hora = time.strftime("%d/%m/%Y - %H:%M:%S")
-#print '['+hora+']'
+print '['+hora+'] Rodou.'
+
 #inicio MESMO
 if sys.argv[1] == 'listen':
+    print '---> Listen <---'
     if config.get('Enviroment','LAST_DM_ID'):
         # pedir somente os itens maiores que o id existente...
         current_val = config.get('Enviroment','LAST_DM_ID')
+        print '--> variavel atual: '+str(current_val)+' <--'
         #print 'Valor atual = '+current_val
-
     else:
         # variavel nao existe.
         config.set('Enviroment','LAST_DM_ID',0)
-        config.write(open('defaults.cfg','w'))
+        config.write(open(fileDefaults,'w'))
         #abort script.
+        print '--> Nao existe variavel! <--'
         exit()
     #pegando pacote com as mensagens enviadas
     #print 'seguindo...'
     pkgReturnDM = api.get_direct_messages(since_id=current_val)
+    print '--> Tamanho do pacote: '+str(len(pkgReturnDM))+' <--'
     for returnDM in pkgReturnDM:
         senderData = returnDM['sender']
         entities = returnDM['entities']
-        #print senderData['id']
-        #print 'Sender ---->' + config.get('Enviroment','allow_sender')
-        #print 'senderData:' + str(senderData['id'])
+        print 'Sender ---->' + config.get('Enviroment','allow_sender')
+        print 'senderData:' + str(senderData['id'])
         if str(senderData['id']) == config.get('Enviroment','allow_sender'):
-            #print returnDM['created_at']
+            print returnDM['created_at']
+            print '--> Usuario OK! <--'
             command =  returnDM['entities']['hashtags'][0]['text']
-            
+            print '-> comando recebido: '+command+' <-'
             #Executar o comando da hashtag
-            if command == 'addr':
-                cmd = 'python raspTweet.py addr'
-                #print 'comando enviado...'
-                os.popen(cmd)
-                # atualiza id
-                config.set('Enviroment','LAST_DM_ID',returnDM['id'])
-                config.write(open('defaults.cfg','w'))
+            full_path = '/home/raspbot/raspLab/tweetBot/'
+            cmd = 'python '+full_path+'raspTweet.py '+command
+            print '[ '+cmd+' ]'
+            #print 'comando enviado...'
+            if os.popen(cmd):
+                print '!!! Comando enviado !!!'
+            else:
+                print ' -- erro ao enviar comando -- '
+            # atualiza id
+            config.set('Enviroment','LAST_DM_ID',returnDM['id'])
+            config.write(open(fileDefaults,'w'))
 elif sys.argv[1] == 'update':
     api.update_status(status=sys.argv[2])
 elif sys.argv[1] == 'temp':
